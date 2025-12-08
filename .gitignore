@@ -53,3 +53,4 @@ Thumbs.db
 .mypy_cache
 # Data (if you want to exclude dataset)
 # ml-100k/
+webminingenv

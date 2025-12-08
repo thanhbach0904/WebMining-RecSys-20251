@@ -9,6 +9,11 @@ RATINGS_FILE = 'u.data'
 MOVIES_FILE = 'u.item'
 USERS_FILE = 'u.user'
 
+# Info
+NUM_USERS = 943
+NUM_MOVIES = 1682
+NUM_RATINGS = 100000
+
 # Data splitting
 TRAIN_RATIO = 0.8
 VAL_RATIO = 0.1
