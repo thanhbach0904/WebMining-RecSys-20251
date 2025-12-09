@@ -4,7 +4,7 @@ Handles reading ratings, movies, and user information from disk.
 """
 
 import os
-import pandas as pd
+import pandas as pd # type:ignore
 
 def get_project_root():
     current_file_path = os.path.abspath(__file__)
@@ -86,14 +86,13 @@ def get_movie_title(movie_id: int, movies_df : pd.DataFrame):
 
 def get_user_ratings(user_id, ratings_df: pd.DataFrame):
     """
-    Get all ratings for a specific user as a DataFrame.
+    Get all ratings for a specific user as a dictionary.
     
     Returns:
-        DataFrame with columns [movie_id, rating]
+        dict: {movie_id: rating}
     """
     user_data = ratings_df[ratings_df['user_id'] == user_id][['item_id', 'rating']]
-    user_data = user_data.rename(columns={'item_id': 'movie_id'})
-    return user_data
+    return dict(zip(user_data['item_id'], user_data['rating']))
 
 if __name__ == "__main__":
     print(get_project_root())
