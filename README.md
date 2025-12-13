@@ -18,9 +18,9 @@ The `ml-100k` directory contains:
 
 ```
 Layer 1 (Content-Based + Inverted Index)
-    ↓ Generates top 100 candidates
+    ↓ Fast Retrieve top 100 candidates
 Layer 2 (SVD Collaborative Filtering)
-    ↓ Re-ranks to top 50
+    ↓ Re-ranks to top 50 (Only predicts the score of the candidates retrieved from phase 1)
 Layer 3 (Autoencoder Embeddings)
     ↓ Final refinement to top 30
 Weighted Ensemble → Top-K Recommendations
@@ -46,7 +46,7 @@ WebMining-RecSys-20251/
 │   │   ├── content_based.py          # Layer 1: Inverted index recommender
 │   │   ├── svd_collaborative.py      # Layer 2: SVD using Surprise library
 │   │   ├── autoencoder.py            # Layer 3: PyTorch autoencoder
-│   │   └── hybrid.py                 # Ensemble combining all three layers
+│   │   └── hybrid.py                 # Ensemble combining SVD + Autoencoder layer
 │   ├── evaluation/
 │   │   └── metrics.py                # RMSE, MAE, Precision@K, Recall@K, NDCG@K
 │   └── visualization/
@@ -83,7 +83,7 @@ All hyperparameters are defined in `config.py`. Key parameters:
 - `AE_DROPOUT`: Dropout rate (default: 0.2)
 
 ### Ensemble
-- `ENSEMBLE_WEIGHTS`: Initial weights [content, svd, ae] (default: [0.3, 0.5, 0.2])
+- `ENSEMBLE_WEIGHTS`: Initial weights [content, svd, ae] (default: [0, 0.7, 0.3])
 - `TUNE_WEIGHTS`: Whether to optimize weights on validation set (default: True)
 
 ### Data Splitting

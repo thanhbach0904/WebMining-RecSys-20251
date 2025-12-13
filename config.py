@@ -13,44 +13,61 @@ USERS_FILE = 'u.user'
 NUM_USERS = 943
 NUM_MOVIES = 1682
 NUM_RATINGS = 100000
+NUM_GENRES = 19
 
 # Data splitting
 TRAIN_RATIO = 0.8
-VAL_RATIO = 0.1
+VAL_RATIO = 0.2  # 20% of training data for AE validation
 TEST_RATIO = 0.1
-TIME_BASED_SPLIT = True  # If True, split by timestamp; else random split
+TIME_BASED_SPLIT = True
 RANDOM_SEED = 42
 
-# Layer 1: Content-Based Recommender
-CONTENT_TOP_K = 100  # Number of candidates to generate
-MIN_RATING_THRESHOLD = 4  # Minimum rating to consider as user preference
+# Layer 1: Content-Based Recommender (Candidate Generation)
+CONTENT_TOP_K = 300  # Increased candidate pool for late fusion
 
 # Layer 2: SVD Collaborative Filtering
-SVD_N_FACTORS = 50  # Number of latent factors (20-100)
-SVD_N_EPOCHS = 20  # Training epochs (10-30)
-SVD_LR = 0.005  # Learning rate
-SVD_REG = 0.02  # Regularization strength
-SVD_TOP_K = 50  # Number of candidates to keep after SVD re-ranking
+SVD_N_FACTORS = 50
+SVD_N_EPOCHS = 20
+SVD_LR = 0.005
+SVD_REG = 0.02
 
-# Layer 3: Autoencoder
-AE_EMBEDDING_DIM = 32  # Bottleneck dimension (16-64)
-AE_HIDDEN_DIMS = [512, 128]  # Hidden layer dimensions
-AE_BATCH_SIZE = 256  # Batch size
-AE_EPOCHS = 50  # Maximum training epochs
-AE_LR = 0.001  # Learning rate
-AE_DROPOUT = 0.2  # Dropout rate (0.2-0.5)
-AE_PATIENCE = 5  # Early stopping patience
-AE_TOP_K = 30  # Number of candidates after autoencoder refinement
+# Layer 3: Denoising Autoencoder
+AE_EMBEDDING_DIM = 32
+AE_HIDDEN_DIMS = [512, 128]
+AE_BATCH_SIZE = 256
+AE_EPOCHS = 100  # More epochs with early stopping
+AE_LR = 0.001
+AE_DROPOUT = 0.3  # Increased for regularization
+AE_PATIENCE = 10  # Early stopping patience
+AE_WEIGHT_DECAY = 1e-5  # L2 regularization
+AE_NOISE_RATIO = 0.2  # Denoising: mask 20% of inputs
+AE_NOISE_TYPE = 'mask'  # 'mask' or 'gaussian'
 
-# Hybrid Ensemble
-ENSEMBLE_WEIGHTS = [0.3, 0.5, 0.2]  # [content, svd, ae]
-TUNE_WEIGHTS = True  # Optimize weights on validation set
+# Score Normalization
+NORM_METHOD = 'zscore'  # 'zscore', 'minmax', or 'rank_percentile'
+
+# Meta-Learner (Stacking)
+META_LEARNER_TYPE = 'logistic'  # 'logistic', 'mlp', or 'gbm'
+META_HIDDEN_DIM = 32  # For MLP meta-learner
+META_LR = 0.01
+META_EPOCHS = 50
+
+# Feature Engineering
+USE_FEATURES = True
+FEATURE_DIMS = {
+    'user_mean': 1,
+    'user_count': 1,
+    'item_mean': 1,
+    'item_count': 1,
+    'item_popularity': 1,
+    'genre_vector': NUM_GENRES,
+}
 
 # Evaluation
-EVAL_K = 10  # K for Precision@K, Recall@K, NDCG@K metrics
+EVAL_K = 10
 
 # Device
-DEVICE = 'cuda'  # 'cuda' or 'cpu'
+DEVICE = 'cuda'
 
 # Model saving
 MODEL_DIR = 'models'

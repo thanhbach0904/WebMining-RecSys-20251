@@ -57,7 +57,6 @@ class CollaborativeFilteringSVD:
         dataset = Dataset.load_from_df(df, reader)
         trainset = dataset.build_full_trainset()
         
-        # Train the model
         self.model.fit(trainset)
         self.is_trained = True
         print(f"SVD model trained on {trainset.n_users} users and {trainset.n_items} items")
@@ -131,10 +130,9 @@ class CollaborativeFilteringSVD:
 
 if __name__ == "__main__":
     # Load data
-    ratings_df = load_ratings_by_fold()
+    ratings_df = load_ratings_by_fold() #load the u1.base by default
     movies_df = load_movies_df()
     
-    # Test content-based first
     content_model = ContentBasedRecommender(movies_df, ratings_df)
     user_id = 1
     candidates = content_model.recommend(user_id, top_k=100)
