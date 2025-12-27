@@ -11,15 +11,17 @@ from collections import defaultdict
 from config import NUM_USERS, NUM_MOVIES, NUM_RATINGS
 from src.data.loader import load_movies_df, get_user_ratings, load_ratings_by_fold, get_movie_title
 import time
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 
 class ContentBasedRecommender:
     """
-    Fast content-based filtering using inverted index on movie genres.
-    Generates top-K candidates based on user's preferred genres.
+    Implements fast content-based filtering via an inverted genre index.
+    Efficiently retrieves top-K candidate items that align with a user's genre preferences.
     """
     def __init__(self, movies_df, ratings_df):
         """
-        Initialize and build inverted index.
+        Construct the inverted index upon initialization.
         
         Args:
             movies_df: DataFrame with movie metadata and genre columns
@@ -31,55 +33,45 @@ class ContentBasedRecommender:
         'Thriller', 'War', 'Western']
         self.movies_df = movies_df
         self.ratings_df = ratings_df
-        self.genre_movieID_index = self._build_inverted_index()
-        pass
-    
-    def _build_inverted_index(self):
-        res = defaultdict(list)
-        for _, row in self.movies_df.iterrows():
-            movie_id = row['movie_id']
-            for genre in self.genre_columns:
-                if row[genre] == 1:
-                    res[genre].append(movie_id)
-        return res
-    
-    def _get_movie_genres(self, movie_id):
-        movie_row = self.movies_df[self.movies_df['movie_id'] == movie_id]
-        if movie_row.empty:
-            return []
-        genres = []
-        for genre in self.genre_columns:
-            if movie_row.iloc[0][genre] == 1:
-                genres.append(genre)
-        return genres
-    
-    def get_user_preferred_genres(self, user_id, existed_user_rating = None):
-        if existed_user_rating:
-            user_ratings = existed_user_rating
-        else:
-            user_ratings = get_user_ratings(user_id, self.ratings_df)
-        genre_count = defaultdict(int)
-        total_movies = len(user_ratings)
         
-        for movie_id in user_ratings.keys():
-            genres = self._get_movie_genres(movie_id)
-            for genre in genres:
-                genre_count[genre] += 1
-        
-        genre_weights = {genre: round(count / total_movies, 2) for genre, count in genre_count.items()}
-        return genre_weights
+        # Precompute genre matrix for cosine similarity
+        self.movie_ids = self.movies_df['movie_id'].values
+        self.genre_matrix = self.movies_df[self.genre_columns].values
     
     def recommend(self, user_id, top_k=100):
-        user_ratings = get_user_ratings(user_id, self.ratings_df)
-        genre_weights = self.get_user_preferred_genres(user_id, existed_user_rating= user_ratings)
+        # 1. Get User History
+        user_ratings = get_user_ratings(user_id, self.ratings_df) # dict: {movie_id: rating}
+        rated_movie_ids = list(user_ratings.keys())
         
-        movie_scores = defaultdict(float)
-        for genre, weight in genre_weights.items():
-            for movie_id in self.genre_movieID_index[genre]:
-                if movie_id not in user_ratings:
-                    movie_scores[movie_id] += weight
+        if not rated_movie_ids:
+            return []
+
+        # 2. Compute Similarity for each rated movie
+        # Filter movies_df to get indices for rated movies
+        rated_indices = self.movies_df[self.movies_df['movie_id'].isin(rated_movie_ids)].index
         
-        sorted_movies = sorted(movie_scores.items(), key=lambda x: x[1], reverse=True)
+        # Calculate cosine similarity between rated movies (source) and ALL movies (candidates)
+        # shape: (n_rated, n_total_movies)
+        sim_matrix = cosine_similarity(self.genre_matrix[rated_indices], self.genre_matrix)
+        
+        candidate_scores = defaultdict(float)
+        
+        # 3. Aggregation (Summing similarities from top-10 neighbors for each rated movie)
+        for i, rated_idx in enumerate(rated_indices):
+            # Get similarity row for this rated movie
+            sim_scores = sim_matrix[i]
+            
+            # Get indices of top-11 most similar (skipping itself which is index rated_idx)
+            # We use top-11 because the movie itself will have sim=1.0
+            top_indices = np.argsort(sim_scores)[::-1][:11] 
+            
+            for idx in top_indices:
+                movie_id = self.movie_ids[idx]
+                if movie_id not in user_ratings: # Exclude already rated
+                    candidate_scores[movie_id] += sim_scores[idx]
+
+        # 4. Sort and Return
+        sorted_movies = sorted(candidate_scores.items(), key=lambda x: x[1], reverse=True)
         return [movie_id for movie_id, score in sorted_movies[:top_k]]
 
 if __name__ == "__main__":
@@ -91,7 +83,7 @@ if __name__ == "__main__":
     
     user_id = 1
     recommender_engine = ContentBasedRecommender(movies_df, ratings_df)
-    print(recommender_engine.get_user_preferred_genres(user_id))
+    # print(recommender_engine.get_user_preferred_genres(user_id))
     start_time = time.time()
     recommended_movies = recommender_engine.recommend(user_id)
     end_time = time.time()

@@ -1,9 +1,9 @@
 """
-Complete Training Pipeline for Late-Fusion Hybrid Recommender.
-Includes: proper validation splits, score calibration, and meta-learner training.
-Saves all trained models to models/ folder.
+End-to-End Training Pipeline.
+Manages the complete lifecycle: validation splitting, model training, score calibration, and meta-learning.
+Artifacts are serialized and stored in component-specific formats within the model directory.
 
-Usage:
+Execution:
     python train.py
 """
 
@@ -27,13 +27,13 @@ from src.evaluation.metrics import evaluate_all
 
 def save_fold_models(fold_num, svd_model, ae_trainer, model_dir='models'):
     """
-    Save trained models for a specific fold.
+    Serialize and store the trained models for consumption by the evaluation and inference scripts.
     
     Args:
-        fold_num: Fold number (1-5)
-        svd_model: Trained SVD model
-        ae_trainer: Trained AutoEncoderTrainer
-        model_dir: Directory to save models
+        fold_num (int): The current fold identifier.
+        svd_model (object): The trained SVD instance.
+        ae_trainer (object): The trained AutoEncoder trainer instance.
+        model_dir (str): Destination directory path.
     """
     os.makedirs(model_dir, exist_ok=True)
     
@@ -53,10 +53,11 @@ def save_fold_models(fold_num, svd_model, ae_trainer, model_dir='models'):
 
 def train_fold(fold_num, movies_df, users_df=None):
     """
-    Train all models on a specific fold with proper validation.
+    Execute the training workflow for a single fold.
+    Includes training Content, SVD, and Autoencoder models, and building the Feature Extractor.
     
     Returns:
-        dict with all trained models and data
+        dict: A dictionary containing trained model instances and split dataframes.
     """
     print(f"\n{'='*60}")
     print(f"FOLD {fold_num}/5")
@@ -104,7 +105,6 @@ def train_fold(fold_num, movies_df, users_df=None):
         lr=config.AE_LR,
         weight_decay=config.AE_WEIGHT_DECAY,
         noise_ratio=config.AE_NOISE_RATIO,
-        noise_type=config.AE_NOISE_TYPE,
         device=device
     )
     
@@ -132,8 +132,8 @@ def train_fold(fold_num, movies_df, users_df=None):
 
 def train_meta_learner(hybrid, train_df, val_df, feature_extractor):
     """
-    Train meta-learner using stacking approach.
-    Uses a portion of training data as pseudo-validation for meta-learner training.
+    Train the Stacking Meta-Learner.
+    Utilizes a reserved portion of training data (pseudo-validation) to learn optimal combination weights.
     """
     print("\n" + "="*60)
     print("TRAINING META-LEARNER")
@@ -161,7 +161,8 @@ def train_meta_learner(hybrid, train_df, val_df, feature_extractor):
 
 def cross_validate():
     """
-    5-fold cross-validation with late-fusion architecture.
+    Perform 5-Fold Cross-Validation.
+    Orchestrates training, parameter efficient tuning (weight sweep), and final evaluation.
     """
     print("\n" + "="*60)
     print("5-FOLD CROSS-VALIDATION - LATE FUSION ARCHITECTURE")
@@ -181,8 +182,7 @@ def cross_validate():
             ae_model=fold_data['ae_model'],
             feature_extractor=fold_data['feature_extractor'],
             meta_learner=None,
-            weights=[0.5, 0.5],
-            norm_method=config.NORM_METHOD
+            weights=[0.5, 0.5]
         )
         
         # Calibrate normalizers on a sample
@@ -287,7 +287,6 @@ def main():
     print("LATE-FUSION HYBRID RECOMMENDER - TRAINING PIPELINE")
     print("="*60)
     print(f"Candidate pool: {config.CONTENT_TOP_K}")
-    print(f"Normalization: {config.NORM_METHOD}")
     print(f"AE noise ratio: {config.AE_NOISE_RATIO}")
     print(f"Meta-learner type: {config.META_LEARNER_TYPE}")
     print("="*60)
@@ -322,7 +321,6 @@ def main():
             ],
             'config': {
                 'content_top_k': config.CONTENT_TOP_K,
-                'norm_method': config.NORM_METHOD,
                 'ae_noise_ratio': config.AE_NOISE_RATIO,
                 'meta_learner_type': config.META_LEARNER_TYPE
             }

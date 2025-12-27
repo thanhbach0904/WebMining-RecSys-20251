@@ -1,6 +1,6 @@
 """
-Hybrid Recommender with Late-Fusion Architecture.
-Implements parallel scoring with normalized ensemble and meta-learner stacking.
+Implements a Late-Fusion Hybrid Recommendation System.
+Orchestrates parallel scoring from multiple models and combines them using normalized ensemble techniques or meta-learner stacking.
 """
 
 import numpy as np
@@ -12,29 +12,28 @@ from config import NUM_MOVIES, NORM_METHOD
 
 class LateFusionHybridRecommender:
     """
-    Late-fusion hybrid recommender.
+    Control class for the late-fusion hybrid system.
     
-    Architecture:
-        1. Content-based: Generate 300 candidates
-        2. Score ALL 300 with both SVD and AE in parallel
-        3. Normalize scores (z-score/min-max/rank)
-        4. Combine with meta-learner or weighted average
+    Processing Pipeline:
+        1. Candidate Generation: Use Content-based model to retrieve initial set (e.g., 300 items).
+        2. Parallel Scoring: Evaluate candidates using SVD and Autoencoder models simultaneously.
+        3. Score Normalization: Align scores using Z-score, Min-Max, or Rank-based methods.
+        4. Fusion: Combine normalized scores via Meta-Learner (if available) or Weighted Average.
     """
     
     def __init__(self, content_model, svd_model, ae_model, 
                  feature_extractor=None, meta_learner=None,
-                 weights=None, norm_method='zscore'):
+                 weights=None):
         """
-        Initialize late-fusion hybrid system.
+        Initialize the Hybrid Recommender.
         
         Args:
-            content_model: ContentBasedRecommender instance
-            svd_model: CollaborativeFilteringSVD instance  
-            ae_model: AutoEncoderTrainer instance
-            feature_extractor: FeatureExtractor instance (for meta-learner)
-            meta_learner: MetaLearner instance (optional, uses weighted avg if None)
-            weights: [w_svd, w_ae] for weighted average fallback
-            norm_method: 'zscore', 'minmax', or 'rank_percentile'
+            content_model: Instance of ContentBasedRecommender.
+            svd_model: Instance of CollaborativeFilteringSVD.
+            ae_model: Instance of AutoEncoderTrainer.
+            feature_extractor: (Optional) FeatureExtractor for meta-learning context.
+            meta_learner: (Optional) Trained MetaLearner model. If None, defaults to weighted averaging.
+            weights (list): Coefficients [w_svd, w_ae] for weighted averaging (default: [0.5, 0.5]).
         """
         self.content_model = content_model
         self.svd_model = svd_model
@@ -48,18 +47,17 @@ class LateFusionHybridRecommender:
         self.ratings_df = content_model.ratings_df
         
         # Score normalizers
-        self.global_normalizer = ScoreNormalizer(method=norm_method)
-        self.per_user_normalizer = PerUserNormalizer(method=norm_method)
-        self.norm_method = norm_method
+        self.global_normalizer = ScoreNormalizer()
+        self.per_user_normalizer = PerUserNormalizer()
     
     def calibrate_normalizers(self, validation_df, sample_size=1000):
         """
-        Calibrate score normalizers on validation data.
-        Learn score distributions for SVD and AE.
+        Calibrate score normalizers using the validation dataset.
+        This step estimates the statistical distribution of scores for each constituent model.
         
         Args:
-            validation_df: Validation ratings DataFrame
-            sample_size: Number of user-item pairs to sample
+            validation_df (pd.DataFrame): DataFrame containing validation ratings.
+            sample_size (int): Max number of samples to use for calibration efficiency.
         """
         print("Calibrating score normalizers...")
         

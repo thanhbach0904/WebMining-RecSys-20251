@@ -1,9 +1,10 @@
 """
-Configuration file for hybrid recommendation system.
-Modify hyperparameters here to tune model performance.
+Central Configuration for the Recommender System.
+Contains global constants, file paths, model hyperparameters, and execution flags.
+Values defined here drive the behavior of training, evaluation, and inference.
 """
 
-# Data paths
+# --- File System Paths ---
 DATA_DIR = 'ml-100k'
 RATINGS_FILE = 'u.data'
 MOVIES_FILE = 'u.item'
@@ -15,23 +16,23 @@ NUM_MOVIES = 1682
 NUM_RATINGS = 100000
 NUM_GENRES = 19
 
-# Data splitting
+# --- Data Splitting Strategy ---
 TRAIN_RATIO = 0.8
 VAL_RATIO = 0.2  # 20% of training data for AE validation
 TEST_RATIO = 0.1
 TIME_BASED_SPLIT = True
 RANDOM_SEED = 42
 
-# Layer 1: Content-Based Recommender (Candidate Generation)
+# --- Model Layer 1: Content-Based ---
 CONTENT_TOP_K = 300  # Increased candidate pool for late fusion
 
-# Layer 2: SVD Collaborative Filtering
+# --- Model Layer 2: Collaborative Filtering (SVD) ---
 SVD_N_FACTORS = 50
 SVD_N_EPOCHS = 20
 SVD_LR = 0.005
 SVD_REG = 0.02
 
-# Layer 3: Denoising Autoencoder
+# --- Model Layer 3: Denoising Autoencoder ---
 AE_EMBEDDING_DIM = 32
 AE_HIDDEN_DIMS = [512, 128]
 AE_BATCH_SIZE = 256
@@ -41,18 +42,16 @@ AE_DROPOUT = 0.3  # Increased for regularization
 AE_PATIENCE = 10  # Early stopping patience
 AE_WEIGHT_DECAY = 1e-5  # L2 regularization
 AE_NOISE_RATIO = 0.2  # Denoising: mask 20% of inputs
-AE_NOISE_TYPE = 'mask'  # 'mask' or 'gaussian'
 
-# Score Normalization
-NORM_METHOD = 'zscore'  # 'zscore', 'minmax', or 'rank_percentile'
+# --- Ensemble Normalization ---
 
-# Meta-Learner (Stacking)
+# --- Meta-Learning ---
 META_LEARNER_TYPE = 'logistic'  # 'logistic', 'mlp', or 'gbm'
 META_HIDDEN_DIM = 32  # For MLP meta-learner
 META_LR = 0.01
 META_EPOCHS = 50
 
-# Feature Engineering
+# --- Feature Engineering ---
 USE_FEATURES = True
 FEATURE_DIMS = {
     'user_mean': 1,
@@ -63,7 +62,7 @@ FEATURE_DIMS = {
     'genre_vector': NUM_GENRES,
 }
 
-# Evaluation
+# --- Evaluation Metrics ---
 EVAL_K = 10
 
 # Device
