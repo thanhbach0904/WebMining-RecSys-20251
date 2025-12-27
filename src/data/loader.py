@@ -1,6 +1,6 @@
 """
-Data loading utilities for MovieLens-100K dataset.
-Handles reading ratings, movies, and user information from disk.
+Module for loading MovieLens-100K data.
+Provides functions to read ratings, movie metadata, and user demographics from the filesystem.
 """
 
 import os
@@ -14,10 +14,14 @@ def get_project_root():
     return current_dir
 def load_ratings_by_fold(data_dir='ml-100k', fold_name = "u1.base"):
     """
-    Load MovieLens-100K dataset files by specific fold.
+    Load ratings from the MovieLens-100K dataset for a specific fold.
     
+    Args:
+        data_dir (str): Directory containing the dataset (default: 'ml-100k').
+        fold_name (str): Name of the file to load (default: "u1.base").
+        
     Returns:
-        ratings: DataFrame with columns [user_id, item_id, rating, timestamp]
+        pd.DataFrame: A DataFrame containing columns [user_id, item_id, rating, timestamp].
     """
     project_root = get_project_root()
     data_path = os.path.join(project_root, data_dir, fold_name)
@@ -27,10 +31,14 @@ def load_ratings_by_fold(data_dir='ml-100k', fold_name = "u1.base"):
 
 def load_movies_df(data_dir="ml-100k", file_name="u.item"):
     """
-    Load movies data from MovieLens-100K dataset.
+    Load movie metadata from the MovieLens-100K dataset.
     
+    Args:
+        data_dir (str): Directory containing the dataset.
+        file_name (str): Name of the file (default: "u.item").
+        
     Returns:
-        movies_df: DataFrame with movie information including genres
+        pd.DataFrame: A DataFrame containing movie details and genre flags.
     """
     project_root = get_project_root()
     data_path = os.path.join(project_root, data_dir, file_name)
@@ -52,10 +60,10 @@ def load_movies_df(data_dir="ml-100k", file_name="u.item"):
 
 def get_movie_genre_mapping(data_dir="ml-100k", file_name="u.item"):
     """
-    Create a mapping from movie_id to binary genre vector.
+    Generate a dictionary mapping movie IDs to their genre binary vectors.
     
     Returns:
-        dict: {movie_id: its binary vector (in numpy array)}
+        dict: A dictionary where keys are movie_ids and values are numpy arrays representing genre vectors.
     """
     movies_df = load_movies_df(data_dir, file_name)
     
@@ -74,7 +82,7 @@ def get_movie_genre_mapping(data_dir="ml-100k", file_name="u.item"):
 
 def get_movie_title(movie_id: int, movies_df : pd.DataFrame):
     """
-    Get movie title by ID.
+    Retrieve the title of a movie given its ID.
     """
     try: 
         for _, row in movies_df.iterrows():
@@ -86,10 +94,10 @@ def get_movie_title(movie_id: int, movies_df : pd.DataFrame):
 
 def get_user_ratings(user_id, ratings_df: pd.DataFrame):
     """
-    Get all ratings for a specific user as a dictionary.
+    Retrieve all ratings made by a specific user.
     
     Returns:
-        dict: {movie_id: rating}
+        dict: A dictionary mapping item_id to rating for the specified user.
     """
     user_data = ratings_df[ratings_df['user_id'] == user_id][['item_id', 'rating']]
     return dict(zip(user_data['item_id'], user_data['rating']))

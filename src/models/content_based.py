@@ -1,7 +1,7 @@
 """
-Layer 1: Content-Based Recommender with Inverted Index.
-Uses movie genres to build fast lookup structure for candidate generation.
-O(n_genres × avg_movies_per_genre) instead of O(n_items × feature_dim).
+Layer 1: Inverted Index based Content-Based Recommender.
+Leverages movie genres to construct a high-performance lookup system for initial candidate generation.
+Achieves O(n_genres * avg_movies_per_genre) time complexity, significantly faster than dense feature retrieval.
 """
 # Script:
 # python -m src.models.content_based
@@ -14,15 +14,16 @@ import time
 
 class ContentBasedRecommender:
     """
-    Fast content-based filtering using inverted index on movie genres.
-    Generates top-K candidates based on user's preferred genres.
+    Implements fast content-based filtering via an inverted genre index.
+    Efficiently retrieves top-K candidate items that align with a user's genre preferences.
     """
     def __init__(self, movies_df, ratings_df):
         """
-        Initialize and build inverted index.
+        Construct the inverted index upon initialization.
         
         Args:
-            movies_df: DataFrame with movie metadata and genre columns
+            movies_df (pd.DataFrame): DataFrame containing movie metadata, specifically genre flags.
+            ratings_df (pd.DataFrame): DataFrame containing user ratings.
         """
         self.genre_columns = [
         'unknown', 'Action', 'Adventure', 'Animation',

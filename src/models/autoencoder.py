@@ -1,6 +1,6 @@
 """
-Layer 3: Denoising Autoencoder for learning dense user/item embeddings.
-Implements CDAE-style denoising with proper validation and regularization.
+Layer 3: Denoising Autoencoder for user/item embedding learning.
+Implements a CDAE-style architecture with configurable noise injection for robust representation learning.
 """
 
 import torch
@@ -11,20 +11,20 @@ import numpy as np
 
 class DenoisingAutoEncoder(nn.Module):
     """
-    Denoising Autoencoder for collaborative filtering.
-    Adds input noise (masking or Gaussian) for regularization.
+    Feed-forward Denoising Autoencoder for collaborative filtering.
+    Applies input corruption (masking or Gaussian noise) to learn robust features.
     """
     
     def __init__(self, n_items, embedding_dim=32, hidden_dims=[512, 128], 
                  dropout=0.3, noise_ratio=0.2, noise_type='mask'):
         """
         Args:
-            n_items: Number of items (input/output dimension)
-            embedding_dim: Bottleneck dimension
-            hidden_dims: List of hidden layer dimensions
-            dropout: Dropout rate
-            noise_ratio: Fraction of inputs to corrupt (for denoising)
-            noise_type: 'mask' (set to 0) or 'gaussian' (add noise)
+            n_items (int): Dimension of input/output layer (corresponds to number of items).
+            embedding_dim (int): Size of the bottleneck layer.
+            hidden_dims (list): Dimensions of intermediate hidden layers.
+            dropout (float): Probability of dropout.
+            noise_ratio (float): Probability of input corruption.
+            noise_type (str): Type of noise ('mask' for zero-masking, 'gaussian' for additive noise).
         """
         super(DenoisingAutoEncoder, self).__init__()
         
@@ -63,15 +63,15 @@ class DenoisingAutoEncoder(nn.Module):
     
     def add_noise(self, x, mask):
         """
-        Add noise to input for denoising training.
-        Only corrupts observed entries (where mask=1).
+        Inject noise into the input tensor to facilitate denoising training.
+        Corrupts only the observed entries (where mask is 1).
         
         Args:
-            x: Input rating vector
-            mask: Binary mask (1 where rating exists)
+            x (torch.Tensor): Input rating vector.
+            mask (torch.Tensor): Binary mask indicating observed ratings.
         
         Returns:
-            Corrupted input
+            torch.Tensor: The corrupted input vector.
         """
         if not self.training or self.noise_ratio == 0:
             return x
@@ -94,11 +94,10 @@ class DenoisingAutoEncoder(nn.Module):
     
     def forward(self, x, mask=None):
         """
-        Forward pass with optional denoising.
+        Resconstruct the input rating vector.
         
         Returns:
-            reconstruction: Reconstructed rating vector
-            embedding: Bottleneck representation
+            tuple: (reconstruction, embedding)
         """
         if mask is not None:
             x_noisy = self.add_noise(x, mask)
@@ -110,7 +109,7 @@ class DenoisingAutoEncoder(nn.Module):
         return reconstruction, embedding
     
     def get_embedding(self, x):
-        """Get embedding without reconstruction."""
+        """Extract the bottleneck embedding for a given input."""
         return self.encoder(x)
 
 

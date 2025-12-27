@@ -1,5 +1,5 @@
 """
-Utility functions for data preparation and user rating vectors.
+Collection of utility functions for data preparation and processing user rating vectors.
 """
 
 from torch.utils.data import DataLoader, TensorDataset
@@ -10,7 +10,7 @@ import pandas as pd #type: ignore
 
 def prepare_data_loader(ratings_df, n_users, n_items, batch_size=256):
     """
-    Prepare PyTorch DataLoader from ratings DataFrame.
+    Construct a PyTorch DataLoader from the ratings DataFrame.
     """
     rating_matrix = np.zeros((n_users, n_items), dtype=np.float32)
     mask_matrix = np.zeros((n_users, n_items), dtype=np.float32)
@@ -39,19 +39,19 @@ def prepare_data_loader(ratings_df, n_users, n_items, batch_size=256):
 def prepare_train_val_loaders(ratings_df, n_users, n_items, val_ratio=0.2, 
                                batch_size=256, random_seed=42):
     """
-    Prepare separate train and validation DataLoaders.
-    Splits 20% of EACH USER's ratings for validation (user-wise split).
+    Create separate DataLoaders for training and validation by splitting user ratings.
+    Typically reserves 20% of EACH USER's ratings for validation (stratified user split).
     
     Args:
-        ratings_df: Full training ratings DataFrame
-        n_users: Total number of users
-        n_items: Total number of items
-        val_ratio: Fraction for validation (default 0.2)
-        batch_size: Batch size
-        random_seed: Random seed for reproducibility
+        ratings_df (pd.DataFrame): The complete ratings dataset.
+        n_users (int): Total count of users.
+        n_items (int): Total count of items.
+        val_ratio (float): Proportion of ratings to use for validation (default: 0.2).
+        batch_size (int): Size of batches for the DataLoader.
+        random_seed (int): Seed for random number generation to ensure reproducibility.
     
     Returns:
-        train_loader, val_loader
+        tuple: (train_loader, val_loader)
     """
     np.random.seed(random_seed)
     
@@ -105,7 +105,7 @@ def prepare_train_val_loaders(ratings_df, n_users, n_items, val_ratio=0.2,
 
 
 def get_user_rating_vector(user_id, ratings_df, n_items):
-    """Create a rating vector for a single user."""
+    """Generate a dense rating vector for a specific user."""
     user_ratings = ratings_df[ratings_df['user_id'] == user_id]
     rating_vector = np.zeros(n_items, dtype=np.float32)
     
@@ -118,7 +118,7 @@ def get_user_rating_vector(user_id, ratings_df, n_items):
 
 
 def load_users_df(data_dir='ml-100k', file_name='u.user'):
-    """Load user demographics."""
+    """Load user demographic information from the dataset."""
     import os
     from src.data.loader import get_project_root
     

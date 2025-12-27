@@ -1,6 +1,6 @@
 """
-Meta-Learner for ensemble stacking.
-Learns to combine model scores and features optimally.
+Feature Stacking Model (Meta-Learner) for Ensemble Recommendation.
+Learns optimal weighting logic to combine scores from base models (SVD, AE) along with context features.
 """
 
 import numpy as np
@@ -36,20 +36,20 @@ class MLPMetaLearner(nn.Module):
 
 class MetaLearner:
     """
-    Stacking meta-learner that combines model scores and features.
-    Supports logistic regression, MLP, or gradient boosting.
+    Wrapper for stacking meta-learning models.
+    Supports algorithms like Logistic Regression, Multi-Layer Perceptrons (MLP), and Gradient Boosting Machines (GBM).
     """
     
     def __init__(self, learner_type='logistic', input_dim=None, 
                  hidden_dim=32, lr=0.01, epochs=50, device='cpu'):
         """
         Args:
-            learner_type: 'logistic', 'mlp', or 'gbm'
-            input_dim: Feature dimension (required for MLP)
-            hidden_dim: Hidden dimension for MLP
-            lr: Learning rate for MLP
-            epochs: Training epochs for MLP
-            device: Device for MLP
+            learner_type (str): Type of model ('logistic', 'mlp', 'gbm').
+            input_dim (int): Feature vector dimension (required for MLP).
+            hidden_dim (int): Hidden layer size (for MLP).
+            lr (float): Learning rate (for MLP).
+            epochs (int): Number of training epochs (for MLP).
+            device (str): Computation device ('cpu' or 'cuda').
         """
         self.learner_type = learner_type
         self.device = device
@@ -75,13 +75,12 @@ class MetaLearner:
     
     def fit(self, X, y):
         """
-        Train meta-learner on stacking features.
+        Train the meta-learner on generated stacking features.
         
         Args:
-            X: numpy array of shape (n_samples, n_features)
-               Features include: [svd_score, ae_score, user_features, item_features]
-            y: numpy array of shape (n_samples,)
-               Binary labels (1 if relevant, 0 if not)
+            X (np.array): Feature matrix of shape (n_samples, n_features).
+                          Features include base model scores and interaction attributes.
+            y (np.array): Binary target labels (1 for relevant/clicked, 0 otherwise).
         """
         X = np.array(X, dtype=np.float32)
         y = np.array(y, dtype=np.float32)

@@ -1,8 +1,8 @@
 """
-Final Evaluation Script for Hybrid Recommender System.
-Loads pre-trained models from models/ folder and evaluates on 5 folds.
+Script for evaluating the Hybrid Recommender System.
+Loads trained models from the 'models/' directory and performs 5-fold cross-validation.
 
-Usage:
+Execution:
     python -m src.evaluation.evaluate
 """
 
@@ -26,7 +26,7 @@ from src.evaluation.metrics import (
 
 
 def load_saved_weights():
-    """Load saved best weights from models folder."""
+    """Retrieve the best model weights saved in the models directory."""
     weights_path = os.path.join(config.MODEL_DIR, 'best_weights.npy')
     
     if os.path.exists(weights_path):
@@ -41,14 +41,14 @@ def load_saved_weights():
 
 def load_fold_models(fold_num, model_dir='models'):
     """
-    Load pre-trained models for a specific fold.
+    Load the trained SVD and Autoencoder models for a specific fold.
     
     Args:
-        fold_num: Fold number (1-5)
-        model_dir: Directory where models are saved
+        fold_num (int): The fold number (1-5).
+        model_dir (str): Directory where the models are stored.
     
     Returns:
-        svd_model, ae_trainer
+        tuple: (svd_model, ae_trainer) - The loaded SVD wrapper and Autoencoder trainer.
     """
     # Load SVD model
     svd_path = os.path.join(model_dir, f'svd_fold{fold_num}.pkl')
@@ -96,10 +96,10 @@ def load_fold_models(fold_num, model_dir='models'):
 
 def evaluate_fold(hybrid, test_df, train_df, svd_model, ae_model, best_weights,  k=10):
     """
-    Evaluate on a single fold with all metrics and timing.
+    Perform evaluation on a single fold, calculating ranking metrics, rating errors, and execution time.
     
     Returns:
-        results dict, timings dict
+        tuple: (results, timings) - Dictionaries containing metric scores and timing measurements.
     """
     users = test_df['user_id'].unique()
     
@@ -213,7 +213,7 @@ def evaluate_fold(hybrid, test_df, train_df, svd_model, ae_model, best_weights, 
 
 def run_evaluation():
     """
-    Load pre-trained models and evaluate on all 5 folds.
+    Orchestrate the full 5-fold evaluation process using pre-trained models.
     """
     print("\n" + "=" * 70)
     print("HYBRID RECOMMENDER - 5-FOLD EVALUATION (FROM SAVED MODELS)")

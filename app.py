@@ -1,6 +1,7 @@
 """
-Streamlit Demo for Hybrid Recommendation System
-Run with: streamlit run app.py
+Streamlit Interface for the Hybrid Recommender System.
+Demonstrates the system's capabilities through an interactive web UI.
+Execute with: streamlit run app.py
 """
 
 import streamlit as st
@@ -81,19 +82,19 @@ st.markdown("""
 
 @st.cache_resource
 def load_movies():
-    """Load movies dataframe (cached)."""
+    """Load movie metadata from disk (handles caching)."""
     return load_movies_df()
 
 
 @st.cache_resource
 def load_users():
-    """Load users dataframe (cached)."""
+    """Load user demographic data (handles caching)."""
     return load_users_df()
 
 
 @st.cache_data
 def load_fold_data(fold_num):
-    """Load train and test data for a specific fold."""
+    """Retrieve training and testing datasets for a given fold index."""
     train_df = load_ratings_by_fold(fold_name=f"u{fold_num}.base")
     test_df = load_ratings_by_fold(fold_name=f"u{fold_num}.test")
     return train_df, test_df
@@ -101,7 +102,7 @@ def load_fold_data(fold_num):
 
 @st.cache_resource
 def load_fold_models(fold_num, movies_df, train_df, users_df):
-    """Load trained models for a specific fold."""
+    """Instantiate and load trained models (SVD, AE, Content) for the specified fold."""
     model_dir = config.MODEL_DIR
     
     # Load SVD model
@@ -157,8 +158,8 @@ def load_fold_models(fold_num, movies_df, train_df, users_df):
 
 def get_ground_truth(user_id, test_df, rating_threshold=4):
     """
-    Get ground truth items for a user (items rated >= threshold in test set).
-    These are the items the user actually liked.
+    Identify items that the user positively interacted with in the test set.
+    'Positive interaction' is defined by a rating greater than or equal to the threshold.
     """
     user_test = test_df[test_df['user_id'] == user_id]
     liked_items = user_test[user_test['rating'] >= rating_threshold]['item_id'].tolist()
@@ -166,7 +167,7 @@ def get_ground_truth(user_id, test_df, rating_threshold=4):
 
 
 def get_all_test_items(user_id, test_df):
-    """Get all items in the test set for a user with their ratings."""
+    """Retrieve all items present in the user's test set along with their true ratings."""
     user_test = test_df[test_df['user_id'] == user_id]
     return dict(zip(user_test['item_id'], user_test['rating']))
 

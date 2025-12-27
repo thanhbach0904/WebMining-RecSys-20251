@@ -1,6 +1,6 @@
 """
-Score normalization utilities for ensemble learning.
-Aligns score distributions from different models before combining.
+Utilities for normalizing scores in ensemble learning.
+Facilitates alignment of score distributions from diverse models prior to combination.
 """
 
 import numpy as np
@@ -9,14 +9,14 @@ from scipy import stats #type: ignore
 
 class ScoreNormalizer:
     """
-    Normalizes scores from different models to comparable ranges.
-    Supports z-score, min-max, and rank percentile normalization.
+    Standardizes scores from various models to a common scale.
+    Supported methods: z-score standardization, min-max scaling, and rank percentile.
     """
     
     def __init__(self, method='zscore'):
         """
         Args:
-            method: 'zscore', 'minmax', or 'rank_percentile'
+            method (str): Normalization technique ('zscore', 'minmax', or 'rank_percentile').
         """
         self.method = method
         self.fitted = False
@@ -26,11 +26,11 @@ class ScoreNormalizer:
     
     def fit(self, model_name, scores):
         """
-        Fit normalizer on a set of scores from a specific model.
+        Calibrate the normalizer using a set of scores from a specific model.
         
         Args:
-            model_name: Identifier for the model (e.g., 'svd', 'ae')
-            scores: numpy array of raw scores
+            model_name (str): Unique identifier for the model (e.g., 'svd', 'ae').
+            scores (np.array): Array of raw scores produced by the model.
         """
         scores = np.array(scores).flatten()
         
@@ -54,14 +54,14 @@ class ScoreNormalizer:
     
     def transform(self, model_name, scores):
         """
-        Transform scores to normalized range.
+        Apply normalization to the provided scores.
         
         Args:
-            model_name: Identifier for the model
-            scores: numpy array or list of raw scores
+            model_name (str): Identifier for the model.
+            scores (np.array/list): Raw scores to be normalized.
         
         Returns:
-            numpy array: Normalized scores in [0, 1] range
+            np.array: Normalized scores scaled to the [0, 1] range.
         """
         scores = np.array(scores).flatten()
         
@@ -93,15 +93,15 @@ class ScoreNormalizer:
         return normalized
     
     def fit_transform(self, model_name, scores):
-        """Fit and transform in one step."""
+        """Fit the normalizer and transform the scores in a single operation."""
         self.fit(model_name, scores)
         return self.transform(model_name, scores)
 
 
 class PerUserNormalizer:
     """
-    Per-user score normalization.
-    Normalizes scores within each user's candidate set.
+    Normalization for individual user scores.
+    Adjusts scores relative to the distribution of scores within each user's candidate set.
     """
     
     def __init__(self, method='zscore'):
@@ -109,13 +109,13 @@ class PerUserNormalizer:
     
     def normalize(self, scores):
         """
-        Normalize a user's scores across their candidate items.
+        Normalize scores for a user's candidate items.
         
         Args:
-            scores: numpy array of scores for one user's candidates
+            scores (np.array): Scores corresponding to a single user's candidates.
         
         Returns:
-            numpy array: Normalized scores
+            np.array: The normalized scores.
         """
         scores = np.array(scores).flatten()
         

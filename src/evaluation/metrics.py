@@ -1,6 +1,6 @@
 """
-Evaluation metrics for recommendation systems.
-Implements RMSE, MAE, Precision@K, Recall@K, NDCG@K, and coverage.
+Metrics for evaluating recommendation performance.
+Includes implementations for RMSE, MAE, Precision@K, Recall@K, NDCG@K, and Catalog Coverage.
 """
 
 import numpy as np
@@ -9,33 +9,42 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error #type: ignor
     
 def rmse(y_true, y_pred):
     """
-    Root Mean Squared Error for rating prediction.
-
-    y_true: list[float]
-    y_pred: list[float]
+    Calculate Root Mean Squared Error (RMSE) between true and predicted ratings.
+    
+    Args:
+        y_true (list[float]): Ground truth ratings.
+        y_pred (list[float]): Predicted ratings.
+        
+    Returns:
+        float: The RMSE value.
     """
     return np.sqrt(mean_squared_error(y_true, y_pred))
     
 def mae(y_true, y_pred):
     """
-    Mean Absolute Error for rating prediction.
+    Calculate Mean Absolute Error (MAE) between true and predicted ratings.
     
-    y_true: list[float]
-    y_pred: list[float]
+    Args:
+        y_true (list[float]): Ground truth ratings.
+        y_pred (list[float]): Predicted ratings.
+    
+    Returns:
+        float: The MAE value.
     """
     return mean_absolute_error(y_true, y_pred)
     
 def precision_at_k(recommended, relevant, k=10):
     """
-    Precision@K: Fraction of recommended items that are relevant.
+    Compute Precision at K.
+    Measures the proportion of recommended items in the top-K that are relevant.
         
     Args:
-        recommended: List of recommended item IDs
-        relevant: List of relevant item IDs (ground truth)
-        k: Cutoff position
+        recommended (list): Ordered list of recommended item IDs.
+        relevant (list): List of relevant item IDs (ground truth).
+        k (int): Number of top recommendations to consider.
         
     Returns:
-        float: Precision@K in [0, 1]
+        float: Precision score [0, 1].
     """
     recommended_k = set(recommended[:k])
     relevant_set = set(relevant)
@@ -48,7 +57,8 @@ def precision_at_k(recommended, relevant, k=10):
     
 def recall_at_k(recommended, relevant, k=10):
     """
-    Recall@K: Fraction of relevant items that are recommended.
+    Compute Recall at K.
+    Measures the proportion of relevant items that are successfully recommended in the top-K.
     """
     recommended_k = set(recommended[:k])
     relevant_set = set(relevant)
@@ -61,16 +71,16 @@ def recall_at_k(recommended, relevant, k=10):
     
 def ndcg_at_k(recommended, relevant_with_ratings, k=10):
     """
-    Normalized Discounted Cumulative Gain@K.
-    Considers both relevance and ranking position.
+    Compute Normalized Discounted Cumulative Gain (NDCG) at K.
+    Evaluates ranking quality, giving higher importance to top ranks.
         
     Args:
-        recommended: List of recommended item IDs
-        relevant_with_ratings: dict {item_id: rating}
-        k: Cutoff position
+        recommended (list): Ordered list of recommended item IDs.
+        relevant_with_ratings (dict): Mapping of item_id to true rating (relevance).
+        k (int): Rank cutoff.
         
     Returns:
-        float: NDCG@K in [0, 1]
+        float: NDCG score [0, 1].
     """
     # DCG: sum of (relevance / log2(position + 1))
     dcg = 0.0
@@ -93,8 +103,8 @@ def ndcg_at_k(recommended, relevant_with_ratings, k=10):
     
 def coverage(all_recommendations, total_items):
     """
-    Catalog coverage: Fraction of items that appear in any recommendation list.
-    Measures diversity across all users.
+    Calculate Catalog Coverage.
+    The percentage of total available items that were recommended to at least one user.
     """
     unique_items = set()
     for recommendations in all_recommendations:
@@ -104,10 +114,10 @@ def coverage(all_recommendations, total_items):
     
 def evaluate_all(model, test_data, k=10):
     """
-    Comprehensive evaluation on test set.
-        
+    Perform a comprehensive evaluation using the test set.
+    
     Returns:
-        dict: {metric_name: value} for all metrics
+        dict: A dictionary containing all computed metrics.
     """
     users = test_data['user_id'].unique()
     
