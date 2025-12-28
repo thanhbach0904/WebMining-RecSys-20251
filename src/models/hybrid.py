@@ -7,7 +7,7 @@ import numpy as np
 from src.data.loader import get_user_ratings
 from src.utils.utils import get_user_rating_vector
 from src.utils.score_normalizer import ScoreNormalizer, PerUserNormalizer
-from config import NUM_MOVIES, NORM_METHOD
+from config import NUM_MOVIES, CONTENT_TOP_K
 
 
 class LateFusionHybridRecommender:
@@ -150,8 +150,8 @@ class LateFusionHybridRecommender:
         if user_ratings is None:
             user_ratings = get_user_ratings(user_id, self.ratings_df)
         
-        # Layer 1: Content-based candidate generation (300 items)
-        candidates = self.content_model.recommend(user_id, top_k=300)
+        # Layer 1: Content-based candidate generation (CONTENT_TOP_K items)
+        candidates = self.content_model.recommend(user_id, top_k=CONTENT_TOP_K)
         
         if len(candidates) == 0:
             return ([], {}) if return_scores else []

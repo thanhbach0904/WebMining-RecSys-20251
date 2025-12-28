@@ -84,8 +84,6 @@ def load_fold_models(fold_num, model_dir='models'):
         dropout=config.AE_DROPOUT,
         lr=config.AE_LR,
         weight_decay=config.AE_WEIGHT_DECAY,
-        noise_ratio=config.AE_NOISE_RATIO,
-        noise_type=config.AE_NOISE_TYPE,
         device=device
     )
     ae_trainer.model.load_state_dict(checkpoint['model_state_dict'])
@@ -267,7 +265,6 @@ def run_evaluation():
             feature_extractor=feature_extractor,
             meta_learner=None,
             weights=best_weights,
-            norm_method=config.NORM_METHOD
         )
         
         # Calibrate normalizers (quick operation)
@@ -298,7 +295,6 @@ def run_evaluation():
     print("\n┌─ MODEL CONFIGURATION ─────────────────────────────────────────────┐")
     print(f"│  Ensemble Weights    : SVD = {best_weights[0]:.3f}, AE = {best_weights[1]:.3f}")
     print(f"│  Candidate Pool      : {config.CONTENT_TOP_K}")
-    print(f"│  Normalization       : {config.NORM_METHOD}")
     print(f"│  Evaluation K        : {k}")
     print("└────────────────────────────────────────────────────────────────────┘")
     
