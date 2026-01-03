@@ -28,6 +28,13 @@ def load_ratings_by_fold(data_dir='ml-100k', fold_name = "u1.base"):
 
     return rating_df
 
+# Debugging Tip:
+# --------------
+# If unexpected results occur, verify:
+# 1. Data fold integrity
+# 2. Model checkpoint compatibility
+# 3. Feature normalization consistency
+
 def load_movies_df(data_dir="ml-100k", file_name="u.item"):
     """
     Load movies data from MovieLens-100K dataset.

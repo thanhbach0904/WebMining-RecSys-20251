@@ -165,3 +165,12 @@ class MetaLearner:
     def score_items(self, X):
         """Alias for predict_proba for consistency."""
         return self.predict_proba(X)
+
+
+# Data Flow Overview:
+# -------------------
+# Input  -> Raw ratings / metadata
+# Process-> Feature extraction / model inference
+# Output -> Normalized scores or ranked item lists
+#
+# This explicit flow helps maintain consistency across folds.
