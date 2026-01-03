@@ -4,6 +4,18 @@ Contains global constants, file paths, model hyperparameters, and execution flag
 Values defined here drive the behavior of training, evaluation, and inference.
 """
 
+"""
+This module is part of the Web Mining Recommendation System project.
+
+Purpose:
+- Describe the responsibility of this module
+- Explain how it fits into the overall pipeline
+
+Note:
+- This file contains no execution entry point
+- All logic is imported and orchestrated elsewhere
+"""
+
 # --- File System Paths ---
 DATA_DIR = 'ml-100k'
 RATINGS_FILE = 'u.data'
@@ -65,10 +77,10 @@ FEATURE_DIMS = {
 # --- Evaluation Metrics ---
 EVAL_K = 10
 
-# Device
+# Device preference ('cpu' or 'cuda')
 DEVICE = 'cuda'
 
-# Model saving
+# Directory used to store trained models
 MODEL_DIR = 'models'
 SAVE_MODELS = True
 

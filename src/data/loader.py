@@ -14,10 +14,13 @@ def get_project_root():
     return current_dir
 def load_ratings_by_fold(data_dir='ml-100k', fold_name = "u1.base"):
     """
-    Load MovieLens-100K dataset files by specific fold.
-    
+    Load rating data corresponding to a specific cross-validation fold.
+
+    Args:
+        fold_name (str): Fold identifier (e.g. u1.base, u1.test)
+
     Returns:
-        ratings: DataFrame with columns [user_id, item_id, rating, timestamp]
+        pd.DataFrame: Ratings dataframe for the given fold
     """
     project_root = get_project_root()
     data_path = os.path.join(project_root, data_dir, fold_name)

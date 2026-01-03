@@ -3,6 +3,18 @@ Streamlit Demo for Hybrid Recommendation System
 Run with: streamlit run app.py
 """
 
+"""
+This module is part of the Web Mining Recommendation System project.
+
+Purpose:
+- Describe the responsibility of this module
+- Explain how it fits into the overall pipeline
+
+Note:
+- This file contains no execution entry point
+- All logic is imported and orchestrated elsewhere
+"""
+
 import streamlit as st
 import pandas as pd
 import numpy as np
