@@ -253,3 +253,11 @@ class LateFusionHybridRecommender:
 
 HybridRecommender = LateFusionHybridRecommender
 
+
+# Future Work:
+# ------------
+# - Support additional recommendation algorithms
+# - Improve cold-start handling
+# - Introduce learning-based fusion strategies
+
+

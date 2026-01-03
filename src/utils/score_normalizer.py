@@ -1,98 +1,91 @@
 """
-Utilities for normalizing scores in ensemble learning.
-Facilitates alignment of score distributions from diverse models prior to combination.
+WebMining-RecSys-2025: Ensemble Scoring Utilities.
+Implements Z-Score standardization to harmonize multi-model outputs.
 """
 
 import numpy as np
-from scipy import stats #type: ignore
 
 
 class ScoreNormalizer:
     """
-    Standardizes scores from various models to a common scale.
-    Method: z-score standardization.
+    Standardizes prediction scores using statistical moments (mean/variance).
+    Maintains model-specific distribution parameters for consistent scaling.
     """
     
     def __init__(self):
+        # Keeps internal state of calibration status
         self.fitted = False
-        # Per-model statistics (learned from validation set)
+        # Dictionary storing μ and σ per model architecture
         self.model_stats = {}
     
     def fit(self, model_name, scores):
         """
-        Calibrate the normalizer using a set of scores from a specific model.
+        Learns the distribution parameters from a provided score set.
         
         Args:
-            model_name (str): Unique identifier for the model (e.g., 'svd', 'ae').
-            scores (np.array): Array of raw scores produced by the model.
+            model_name: Unique key for the model (e.g., 'svd', 'autoencoder').
+            scores: Numerical collection of raw prediction outputs.
         """
-        scores = np.array(scores).flatten()
+        raw_data = np.asarray(scores).ravel()
         
+        # Calculate statistical moments with a small epsilon to prevent NaN
         self.model_stats[model_name] = {
-            'mean': np.mean(scores),
-            'std': np.std(scores) + 1e-8  # Avoid division by zero
+            'mean': raw_data.mean(),
+            'std': raw_data.std() + 1e-10
         }
         
         self.fitted = True
     
     def transform(self, model_name, scores):
         """
-        Apply normalization to the provided scores.
-        
-        Args:
-            model_name (str): Identifier for the model.
-            scores (np.array/list): Raw scores to be normalized.
-        
-        Returns:
-            np.array: Normalized scores scaled to the [0, 1] range.
+        Transforms raw scores into a normalized probability space [0, 1].
         """
-        scores = np.array(scores).flatten()
+        input_array = np.asarray(scores).ravel()
         
+        # Fallback to Min-Max if model_name hasn't been calibrated yet
         if model_name not in self.model_stats:
-            # If not fitted, return raw scores scaled to [0, 1]
-            return (scores - scores.min()) / (scores.max() - scores.min() + 1e-8)
+            lower, upper = input_array.min(), input_array.max()
+            return (input_array - lower) / (upper - lower + 1e-10)
         
-        stats = self.model_stats[model_name]
+        # Fetch pre-computed mu and sigma
+        params = self.model_stats[model_name]
         
-        # Z-score then sigmoid to [0, 1]
-        z_scores = (scores - stats['mean']) / stats['std']
-        # Use sigmoid to map to [0, 1]
-        normalized = 1 / (1 + np.exp(-z_scores))
+        # Execution of Z-score logic followed by Logistic Sigmoid activation
+        z_score_val = (input_array - params['mean']) / params['std']
         
-        return normalized
+        # Output is mapped to [0, 1] range
+        return 1.0 / (1.0 + np.exp(-z_score_val))
     
     def fit_transform(self, model_name, scores):
-        """Fit the normalizer and transform the scores in a single operation."""
+        """Helper to fit and scale in a single execution block."""
         self.fit(model_name, scores)
         return self.transform(model_name, scores)
 
 
 class PerUserNormalizer:
     """
-    Normalization for individual user scores.
-    Adjusts scores relative to the distribution of scores within each user's candidate set.
+    User-centric normalization engine.
+    Calculates relative preference weights within a localized candidate set.
     """
     
     def __init__(self):
+        """Stateless initialization."""
         pass
     
     def normalize(self, scores):
         """
-        Normalize scores for a user's candidate items.
-        
-        Args:
-            scores (np.array): Scores corresponding to a single user's candidates.
-        
-        Returns:
-            np.array: The normalized scores.
+        Applies local standardization for a specific user's recommendation list.
         """
-        scores = np.array(scores).flatten()
+        data_points = np.asarray(scores).ravel()
         
-        if len(scores) == 0:
-            return scores
+        if data_points.size == 0:
+            return data_points
         
-        mean = np.mean(scores)
-        std = np.std(scores) + 1e-8
-        z_scores = (scores - mean) / std
-        # Sigmoid to [0, 1]
-        return 1 / (1 + np.exp(-z_scores))
+        # Local distribution estimation
+        mu_local = data_points.mean()
+        sigma_local = data_points.std() + 1e-10
+        
+        # Mapping to normalized space via Sigmoid function
+        z = (data_points - mu_local) / sigma_local
+        
+        return 1.0 / (1.0 + np.exp(-z))

@@ -16,6 +16,14 @@ class CollaborativeFilteringSVD:
     SVD-based collaborative filtering using Surprise library.
     Learns latent factors from user-item rating matrix.
     """
+    """
+    Wrapper class for SVD-based collaborative filtering.
+
+    Responsibilities:
+    - Encapsulate Surprise SVD model
+    - Provide a unified interface for prediction
+    - Ensure compatibility with hybrid fusion modules
+    """
     
     def __init__(self, n_factors=50, n_epochs=20, lr=0.005, reg=0.02):
         """
