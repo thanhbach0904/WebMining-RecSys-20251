@@ -105,7 +105,7 @@ def load_fold_models(fold_num, movies_df, train_df, users_df):
     model_dir = config.MODEL_DIR
     
     # Load SVD model
-    svd_path = os.path.join(model_dir, f'svd_fold{fold_num}.pkl')
+    svd_path = os.path.join(model_dir, f'svd_fold{fold_num}_2812.pkl')
     with open(svd_path, 'rb') as f:
         svd_surprise_model = pickle.load(f)
     
@@ -115,7 +115,7 @@ def load_fold_models(fold_num, movies_df, train_df, users_df):
     svd_model.is_trained = True
     
     # Load Autoencoder model
-    ae_path = os.path.join(model_dir, f'autoencoder_fold{fold_num}.pt')
+    ae_path = os.path.join(model_dir, f'autoencoder_fold{fold_num}_2812.pt')
     checkpoint = torch.load(ae_path, map_location='cpu')
     
     device = 'cuda' if torch.cuda.is_available() and config.DEVICE == 'cuda' else 'cpu'
@@ -138,6 +138,7 @@ def load_fold_models(fold_num, movies_df, train_df, users_df):
     weights_path = "models\best_weights.npy"
     if os.path.exists(weights_path):
         best_weights = np.load(weights_path).tolist()
+        print(best_weights)
     else:
         best_weights = [0.5, 0.5]
     
@@ -149,7 +150,6 @@ def load_fold_models(fold_num, movies_df, train_df, users_df):
         feature_extractor=feature_extractor,
         meta_learner=None,
         weights=best_weights,
-        norm_method=config.NORM_METHOD
     )
     
     return hybrid
