@@ -5,6 +5,17 @@
 
 A three-layer hybrid recommendation system combining content-based filtering, collaborative filtering (SVD), and deep learning (Autoencoder) on the MovieLens-100K dataset.
 
+### Pretrained Models
+
+Download the pretrained models from Google Drive and place them in the `models/` directory:
+
+**[⬇️ Download Pretrained Models (Google Drive)](https://drive.google.com/drive/folders/1OrXi38kPtMO1IMO_XyujKtibM-h4V4Vp?usp=sharing)**
+
+The `models/` folder should contain:
+- `svd_fold[1-5]_2812.pkl` - SVD models for each fold
+- `autoencoder_fold[1-5]_2812.pt` - Autoencoder models for each fold
+- `best_weights.npy` - Optimized ensemble weights
+
 ## Setup and Installation
 
 ### Prerequisites
@@ -75,7 +86,6 @@ The `ml-100k` directory contains:
 
 ## Architecture Overview
 
-
 ## System Architecture
 
 Our system operates in two primary functional layers:
@@ -84,23 +94,16 @@ Our system operates in two primary functional layers:
 
 2. **Hybrid Ranking Layer:** This layer functions as a parallel scoring engine. The generated candidates are simultaneously scored by an SVD model and a Denoising Autoencoder. These scores are then normalized and fused via an ensemble mechanism to produce the final top-N recommendation list.
 
-### Why This Design?
-
-- **Progressive Complexity**: Easy to debug, can evaluate each layer independently
-- **Practical Performance**: Fast candidate generation with accurate final ranking
-- **Interpretable**: Clear contribution from each component
-- **Cold Start Handling**: Content-based layer handles new items
 
 ## Project Structure
 
 ```
 WebMining-RecSys-20251/
 ├── ml-100k/                          # Dataset directory
-├── models/                           # Saved model files
+├── models/                           # Saved/pretrained model files
 ├── src/
 │   ├── data/
-│   │   ├── loader.py                 # Load ratings, movies, users data
-│   │   └── preprocessing.py          # Train/val/test splits, user-item matrix
+│   │   └── loader.py                 # Load ratings, movies, users data
 │   ├── models/
 │   │   ├── content_based.py          # Layer 1: Inverted index recommender
 │   │   ├── svd_collaborative.py      # Layer 2: SVD using Surprise library
@@ -112,17 +115,16 @@ WebMining-RecSys-20251/
 │   │   └── evaluate.py               # Evaluation pipeline
 │   ├── features/
 │   │   └── features.py               # Feature engineering
-│   ├── utils/
-│   │   ├── utils.py                  # Utility functions
-│   │   └── score_normalizer.py       # Score normalization methods
-│   └── visualization/
-│       ├── graph.py                  # Movie similarity network visualization
-│       └── embeddings.py             # t-SNE/UMAP embedding visualization
+│   └── utils/
+│       ├── utils.py                  # Utility functions
+│       └── score_normalizer.py       # Score normalization methods
 ├── notebooks/
 │   ├── demo.ipynb                    # Interactive demo and experiments
+│   ├── eda.ipynb                     # Exploratory data analysis
 │   └── loader.ipynb                  # Data loading examples
+├── app.py                            # Streamlit demo application
 ├── train.py                          # Main training pipeline
-├── recommend.py                      # Generate recommendations for users
+├── evaluate_without_cbf.py           # Comparison: with vs without CBF
 ├── config.py                         # Hyperparameters and configuration
 ├── requirements.txt                  # Python dependencies
 └── README.md                         # This file
@@ -130,23 +132,49 @@ WebMining-RecSys-20251/
 
 ## Usage
 
-### Training the Model
+### 1. Training the Models (5-Fold Cross-Validation)
+
+Train all models from scratch with 5-fold cross-validation:
 
 ```bash
 python train.py
 ```
 
-### Generating Recommendations
+This script will:
+- Train Content-Based, SVD, and Autoencoder models for each fold
+- Perform weight optimization for ensemble fusion
+- Save trained models to `models/` directory
+- Output cross-validation metrics (Precision@K, Recall@K, NDCG@K)
+
+**Note:** Training takes approximately 30-60 minutes depending on your hardware.
+
+### 2. Running the Streamlit Demo App
+
+Launch the interactive web demo to explore recommendations:
 
 ```bash
-python recommend.py
+streamlit run app.py
 ```
 
-### Running the Demo Notebook
+Features:
+- Select users and generate personalized movie recommendations
+- Compare predictions against ground truth
+- View user watch history and profile information
+- Adjust number of recommendations and rating thresholds
+
+### 3. Evaluation: With vs Without Content-Based Filtering
+
+Compare the impact of the content-based filtering layer:
 
 ```bash
-jupyter notebook notebooks/demo.ipynb
+python evaluate_without_cbf.py
 ```
+
+This script evaluates:
+- Recommendation quality metrics (Precision, Recall, NDCG, Coverage)
+- Rating prediction metrics (RMSE, MAE)
+- Inference time comparison (speedup from content-based candidate filtering)
+
 
 ## Configuration and Hyperparameters
 
@@ -171,17 +199,13 @@ All hyperparameters are defined in `config.py`. Key parameters:
 - `AE_NOISE_RATIO`: Denoising noise ratio (default: 0.2)
 
 ### Meta-Learner
-- `META_LEARNER_TYPE`: Type of meta-learner - 'logistic', 'mlp', or 'gbm' (default: 'logistic')
+- `META_LEARNER_TYPE`: Type of meta-learner - default: 'logistic'
 - `META_HIDDEN_DIM`: Hidden dimension for MLP meta-learner (default: 32)
 
 ### Score Normalization
-- `NORM_METHOD`: Normalization method - 'zscore', 'minmax', or 'rank_percentile' (default: 'zscore')
+- `NORM_METHOD`: Normalization method (default: 'zscore')
 
-### Data Splitting
-- `TRAIN_RATIO`: Training data ratio (default: 0.8)
-- `VAL_RATIO`: Validation data ratio (default: 0.2)
-- `TEST_RATIO`: Test data ratio (default: 0.1)
-- `TIME_BASED_SPLIT`: Use temporal splitting (default: True)
+
 
 ## Customization Guide
 
@@ -209,20 +233,5 @@ Edit `config.py` and modify the relevant parameters.
 - Modify weight optimization in `tune_weights()`
 - Add new models to the ensemble
 
-### To Add New Evaluation Metrics
-Add methods to `RecommenderEvaluator` class in `src/evaluation/metrics.py`.
-
-### To Add Visualizations
-Create new visualization functions in `src/visualization/` directory.
-
-## Extensions
-
-Possible improvements:
-- Add user demographics as features
-- Implement temporal weighting (recent ratings matter more)
-- Add diversity re-ranking (MMR algorithm)
-- Use attention mechanism in autoencoder
-- Implement Neural Collaborative Filtering
-- Add movie plot text embeddings (TF-IDF or BERT)
 
 
